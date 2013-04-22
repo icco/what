@@ -2,11 +2,11 @@
   <h1>What should Nat do next?</h1>
   <p>Everyone's favorite gameshow!</p>
 
-  <p>
   <% form_tag '/', :method => 'post', :class => 'form-search' do %>
     <%= flash_tag(:notice) %>
-    <%= text_field_tag 'text', :class => 'input-medium search-query' %>
-    <%= submit_tag "Merge!", :class => 'btn' %>
+    <div class="input-append">
+      <%= text_field_tag 'text', :class => 'input-block-level search-query' %>
+      <%= submit_tag "Suggest", :class => 'btn' %>
+    </div>
   <% end %>
-  </p>
 </div>
