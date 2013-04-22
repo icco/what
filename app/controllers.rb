@@ -1,23 +1,19 @@
 What::App.controllers  do
+  get :index do
+    @ideas = Idea.all
+    render :index
+  end
+
+  get :idea, :with => :id do
+    @idea = Idea.get(:id)
+    render :idea
+  end
   
-  # get :index, :map => '/foo/bar' do
-  #   session[:foo] = 'bar'
-  #   render 'index'
-  # end
+  get :success, :map => "/auth/:provider/callback" do
+    auth_hash = request.env["omniauth.auth"]
+    session[:user_email] = auth_hash['email']
+    flash[:message] = "You are now signed in as #{session[:user_email]}."
 
-  # get :sample, :map => '/sample/url', :provides => [:any, :js] do
-  #   case content_type
-  #     when :js then ...
-  #     else ...
-  # end
-
-  # get :foo, :with => :id do
-  #   'Maps to url '/foo/#{params[:id]}''
-  # end
-
-  # get '/example' do
-  #   'Hello world!'
-  # end
-  
-
+    redirect :index
+  end
 end

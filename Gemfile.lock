@@ -35,9 +35,11 @@ GEM
       multi_json (>= 1.0.0)
       signet (>= 0.4.4)
       uuidtools (>= 2.1.0)
+    hashie (2.0.3)
     http_router (0.11.0)
       rack (>= 1.0.0)
       url_mount (~> 0.2.1)
+    httpauth (0.2.0)
     i18n (0.6.4)
     json (1.7.7)
     jwt (0.1.8)
@@ -52,6 +54,20 @@ GEM
     minitest (4.7.3)
     multi_json (1.7.2)
     multipart-post (1.2.0)
+    oauth2 (0.8.1)
+      faraday (~> 0.8)
+      httpauth (~> 0.1)
+      jwt (~> 0.1.4)
+      multi_json (~> 1.0)
+      rack (~> 1.2)
+    omniauth (1.1.4)
+      hashie (>= 1.2, < 3)
+      rack
+    omniauth-gplus (1.1.1)
+      omniauth-oauth2 (~> 1.1)
+    omniauth-oauth2 (1.1.1)
+      oauth2 (~> 0.8.0)
+      omniauth (~> 1.0)
     padrino (0.11.1)
       padrino-admin (= 0.11.1)
       padrino-cache (= 0.11.1)
@@ -127,6 +143,7 @@ DEPENDENCIES
   google-api-client (>= 0.6.2)
   json
   minitest
+  omniauth-gplus
   padrino
   pg
   rack-test
