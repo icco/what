@@ -18,6 +18,6 @@ What::App.controllers  do
     session[:user_email] = auth_hash['email']
     flash[:message] = "You are now signed in as #{session[:user_email]}."
 
-    redirect :index
+    redirect '/'
   end
 end
