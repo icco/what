@@ -4,8 +4,8 @@
 
   <% form_tag '/', :method => 'post', :class => 'form-search' do %>
     <%= flash_tag(:notice) %>
-    <div class="input-append">
-      <%= text_field_tag 'text', :id => 'search', :class => 'input-block-level search-query' %>
+    <div class="input-append" id="search">
+      <%= text_field_tag 'text', :class => 'input-block-level search-query' %>
       <%= submit_tag "Suggest", :class => 'btn' %>
     </div>
   <% end %>
