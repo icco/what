@@ -1,7 +1,9 @@
 <div class="hero-unit">
   <h1>What should Nat do next?</h1>
   <p>Everyone's favorite gameshow!</p>
+</div>
 
+<div class="hero-unit">
   <h2>About</h2>
   <p><a href="http://natwelch.com">Nat</a> has a &#8220;problem&#8221;. He doesn&#8217;t know what he wants in life. Because of that, he&#8217;s having trouble figuring out where he should direct his energy and time.</p>
 
@@ -15,10 +17,16 @@
   </ul>
 
   <p>So what do you think Nat should do with his life? Please post general ideas and discuss!</p>
+</div>
 
+<% @ideas.each do |idea| %>
+  <div>
+    <p><%= idea.text %></p>
+  </div>
+<% end %>
 
+<div>
   <% form_tag '/', :method => 'post', :class => 'form-search' do %>
-    <%= flash_tag(:notice) %>
     <div class="input-append" id="search">
       <%= text_field_tag 'text', :class => 'input-block-level search-query' %>
       <%= submit_tag "Suggest", :class => 'btn' %>

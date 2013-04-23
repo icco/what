@@ -4,6 +4,15 @@ What::App.controllers  do
     render :index
   end
 
+  post :index do
+    i = Idea.new
+    i.text = params['text']
+    i.email = session[:user_email]
+    i.save
+
+    redirect '/'
+  end
+
   get :idea, :with => :id do
     @idea = Idea.get(:id)
     render :idea
