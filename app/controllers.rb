@@ -14,8 +14,19 @@ What::App.controllers  do
   end
 
   get :idea, :with => :id do
-    @idea = Idea.get(:id)
+    @idea = Idea.find(params[:id])
     render :idea
+  end
+
+  post :idea, :with => :id do
+    @idea = Idea.find(params[:id])
+    c = Comment.new
+    c.idea = @idea
+    c.text = params['text']
+    c.email = session[:user_email]
+    c.save
+
+    redirect "/idea/#{params[:id]}"
   end
 
   get :login do
