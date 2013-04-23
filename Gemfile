@@ -6,7 +6,7 @@ gem 'erubis', "~> 2.7.0"
 gem 'google-api-client', '>= 0.6.2', :require => 'google/api_client'
 gem 'json'
 gem 'minitest', :require => 'minitest/autorun', :group => 'test'
-gem 'omniauth-gplus'
+gem 'omniauth-google-oauth2'
 gem 'padrino'
 gem 'pg'
 gem 'rack-test', :require => 'rack/test', :group => 'test'

@@ -34,13 +34,23 @@ What::App.controllers  do
   end
 
   get :login do
-    redirect "/auth/gplus"
+    redirect "/auth/google_oauth2"
   end
 
-  get "/auth/gplus/callback" do
+  get :logout do
+    session[:user_email] = nil
+    session[:user_image] = nil
+    session[:user_creds] = nil
+    session.clear
+
+    redirect '/'
+  end
+
+  get "/auth/google_oauth2/callback" do
     auth_hash = request.env["omniauth.auth"]
-    session[:user_email] = auth_hash['email']
-    flash[:message] = "You are now signed in as #{session[:user_email]}."
+    session[:user_email] = auth_hash.info['email']
+    session[:user_image] = auth_hash.info['image']
+    session[:user_creds] = auth_hash.credentials
 
     redirect '/'
   end

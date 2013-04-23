@@ -9,7 +9,10 @@ module What
     enable :sessions
 
     use OmniAuth::Builder do
-      provider :gplus, ENV['GPLUS_ID'], ENV['GPLUS_SECRET'], :scope => 'plus.me'
+      provider :google_oauth2, ENV['GPLUS_ID'], ENV['GPLUS_SECRET'], {
+        :scope => "userinfo.email,userinfo.profile,plus.me",
+        :approval_prompt => "auto"
+      }
     end
 
     layout :main
