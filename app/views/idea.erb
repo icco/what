@@ -26,10 +26,17 @@
 <% end %>
 
 <div class="row">
-  <div class="span11 offset1">
-    <% form_tag '', :method => 'post', :class => '' do %>
-      <%= text_area_tag 'text', :class => 'input-block-level' %>
-      <%= submit_tag "comment", :class => 'btn pull-right' %>
-    <% end %>
-  </div>
+  <% if @logged_in %>
+    <div class="span11 offset1">
+      <% form_tag '', :method => 'post', :class => '' do %>
+        <%= text_area_tag 'text', :class => 'input-block-level' %>
+        <%= submit_tag "comment", :class => 'btn pull-right' %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="span4 centering">
+      <p>To post comments or submit suggestions...</p>
+      <p><a href="/login" class="btn btn-large btn-primary">Login!</a></p>
+    </div>
+  <% end %>
 </div>

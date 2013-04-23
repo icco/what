@@ -1,4 +1,8 @@
 What::App.controllers  do
+  before do
+    @logged_in = !session[:user_email].nil?
+  end
+
   get :index do
     @ideas = Idea.all
     render :index
@@ -8,7 +12,7 @@ What::App.controllers  do
     i = Idea.new
     i.text = params['text']
     i.email = session[:user_email]
-    i.save
+    i.save if @logged_in
 
     redirect '/'
   end
@@ -24,7 +28,7 @@ What::App.controllers  do
     c.idea = @idea
     c.text = params['text']
     c.email = session[:user_email]
-    c.save
+    c.save if @logged_in
 
     redirect "/idea/#{params[:id]}"
   end
@@ -32,7 +36,7 @@ What::App.controllers  do
   get :login do
     redirect "/auth/gplus"
   end
-  
+
   get "/auth/gplus/callback" do
     auth_hash = request.env["omniauth.auth"]
     session[:user_email] = auth_hash['email']
