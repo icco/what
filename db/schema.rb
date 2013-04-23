@@ -11,18 +11,18 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 3) do
+ActiveRecord::Schema.define(:version => 4) do
 
   create_table "comments", :force => true do |t|
     t.integer  "idea_id"
-    t.text     "text"
+    t.text     "text",       :null => false
     t.string   "email",      :null => false
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
   end
 
   create_table "ideas", :force => true do |t|
-    t.text     "text"
+    t.text     "text",       :null => false
     t.string   "email",      :null => false
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
