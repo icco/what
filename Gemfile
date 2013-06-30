@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # Project requirements
-gem 'activerecord', :require => "active_record"
+gem 'activerecord', '~> 3.0', :require => "active_record"
 gem 'erubis', "~> 2.7.0"
 gem 'google-api-client', '>= 0.6.2', :require => 'google/api_client'
 gem 'json'
