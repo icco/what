@@ -51,7 +51,7 @@ GEM
       treetop (~> 1.4.8)
     mime-types (1.25)
     minitest (5.0.8)
-    multi_json (1.8.1)
+    multi_json (1.8.2)
     multipart-post (1.2.0)
     oauth2 (0.8.1)
       faraday (~> 0.8)
@@ -129,7 +129,7 @@ GEM
     treetop (1.4.15)
       polyglot
       polyglot (>= 0.3.1)
-    tzinfo (0.3.37)
+    tzinfo (0.3.38)
     url_mount (0.2.1)
       rack
     uuidtools (2.1.4)
