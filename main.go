@@ -17,7 +17,6 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/file"
-	"appengine/user"
 
 	"github.com/golang/oauth2/google"
 	"google.golang.org/cloud"
@@ -154,7 +153,7 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 
 func (m *Message) _datastoreSave(c appengine.Context) error {
 	n := Note{
-		Content: r.FormValue("content"),
+		Content: m.data,
 		Date:    time.Now(),
 	}
 
