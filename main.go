@@ -146,7 +146,13 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 			if err != nil {
 				return nil, err
 			}
-			messages = append(messages, &Message{Data: slurp})
+			messages = append(messages, &Message{
+				ContentType:             p.Header.Get("Content-Type"),
+				Data:                    slurp,
+				ContentId:               p.Header.Get("Content-ID"),
+				ContentTransferEncoding: p.Header.Get("Content-Transfer-Encoding"),
+				ContentDisposition:      p.Header.Get("Content-Disposition"),
+			})
 		}
 	} else {
 		return nil, errors.New(fmt.Sprintf("Unknown mediatype: %+v", mediaType))
