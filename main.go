@@ -200,19 +200,25 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 		ContentType: m.ContentType,
 		Metadata:    map[string]string{},
 	})
-	if _, err := wc.Write(m.Data); err != nil {
+	c.Infof("Writer Created: %+v", wc)
+
+	if i, err := wc.Write(m.Data); err != nil {
 		c.Errorf("createFile: unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
 		return err
+	} else {
+		c.Infof("Wrote %d bytes to bucket '%+v' and file '%+v'", i, bucketName, filename)
 	}
+
 	if err := wc.Close(); err != nil {
 		c.Errorf("createFile: unable to close bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	}
+
 	// Wait for the file to be fully written.
-	if _, err := wc.Object(); err != nil {
-		c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
-		return err
-	}
+	//if _, err := wc.Object(); err != nil {
+	//	c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
+	//	return err
+	//}
 
 	return nil
 }
