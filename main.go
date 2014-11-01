@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/mail"
+	"strconv"
 	"strings"
 	"time"
 
@@ -188,7 +189,7 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 		return errors.New(fmt.Sprintf("failed to get default GCS bucket name: %v", err))
 	}
 
-	filename = m.ContentId
+	filename := m.ContentId
 	if filename == "" {
 		filename = strconv.FormatInt(time.Now().Unix(), 10)
 	}
