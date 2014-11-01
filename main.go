@@ -117,7 +117,6 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Infof("Parse mail body part %d (type: %v): %+v", k, v.ContentType, string(v.Data))
 		if err := v.Store(c); err != nil {
 			c.Errorf("Failed storing message: %v", err)
-			return
 		}
 	}
 }
