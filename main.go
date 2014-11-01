@@ -32,7 +32,6 @@ type Note struct {
 
 func init() {
 	http.HandleFunc("/", root)
-	// http.HandleFunc("/sign", sign)
 	http.HandleFunc("/_ah/mail/", incomingMail)
 }
 
@@ -72,28 +71,6 @@ var noteTemplate = template.Must(template.New("book").Parse(`
   </body>
 </html>
 `))
-
-func sign(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	g := Note{
-		Content: r.FormValue("content"),
-		Date:    time.Now(),
-	}
-	if u := user.Current(c); u != nil {
-		g.Author = u.String()
-	}
-	// We set the same parent key on every Greeting entity to ensure each Greeting
-	// is in the same entity group. Queries across the single entity group
-	// will be consistent. However, the write rate to a single entity group
-	// should be limited to ~1/second.
-	key := datastore.NewIncompleteKey(c, "Note", noteKey(c))
-	_, err := datastore.Put(c, key, &g)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	http.Redirect(w, r, "/", http.StatusFound)
-}
 
 func incomingMail(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
@@ -176,7 +153,27 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 }
 
 func (m *Message) _datastoreSave(c appengine.Context) error {
-	return errors.New("Not implemented yet")
+	n := Note{
+		Content: r.FormValue("content"),
+		Date:    time.Now(),
+	}
+
+	// TODO(icco): Get user from email headers
+	//if u := user.Current(c); u != nil {
+	//	g.Author = u.String()
+	//}
+
+	// We set the same parent key on every Note entity to ensure each Note is in
+	// the same entity group. Queries across the single entity group will be
+	// consistent. However, the write rate to a single entity group should be
+	// limited to ~1/second.
+	key := datastore.NewIncompleteKey(c, "Note", noteKey(c))
+	_, err := datastore.Put(c, key, &n)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *Message) _blobstoreSave(c appengine.Context) error {
