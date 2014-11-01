@@ -193,6 +193,12 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 		Metadata:    map[string]string{},
 	})
 
+	err = storage.PutDefaultACLRule(ctx, bucketName, "allUsers", storage.RoleReader)
+	if err != nil {
+		c.Errorf("Unable to save default object ACL rule for bucket %q: %v", bucketName, err)
+		return err
+	}
+
 	if i, err := wc.Write(m.Data); err != nil {
 		c.Errorf("Unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
 		return err
