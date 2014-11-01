@@ -1,10 +1,16 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/mail"
+	"strings"
 	"time"
 
 	"appengine"
@@ -95,10 +101,51 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Error parsing mail: %v", err)
 		return
 	}
-	body, err := ioutil.ReadAll(parsed.Body)
+	body, err := parseBody(parsed.Body, parsed.Header.Get("Content-Type"))
 	if err != nil {
 		c.Errorf("Failed reading body: %v", err)
 		return
 	}
-	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, string(body))
+	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, body)
+}
+
+// A Message is a datatype the represents a part of the email body. Often a
+// body will have a text/plain and a text/html message inside it, plus a
+// message for each attachment. ContentType and Data will always have something
+// in them, the rest of the fields might be nil.
+type Message struct {
+	ContentType             string
+	Data                    []byte
+	ContentId               string
+	ContentTransferEncoding string
+	ContentDisposition      string
+}
+
+func parseBody(body io.Reader, contentType string) ([]*Message, error) {
+	messages := make([]*Message, 0)
+	mediaType, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasPrefix(mediaType, "multipart/") {
+		mr := multipart.NewReader(body, params["boundary"])
+		for {
+			p, err := mr.NextPart()
+			if err == io.EOF {
+				return messages, nil
+			}
+			if err != nil {
+				return nil, err
+			}
+
+			slurp, err := ioutil.ReadAll(p)
+			if err != nil {
+				return nil, err
+			}
+			messages = append(messages, &Message{Data: slurp})
+		}
+	} else {
+		return nil, errors.New(fmt.Sprintf("Unknown mediatype: %+v", mediaType))
+	}
 }
