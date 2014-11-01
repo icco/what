@@ -94,5 +94,5 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Error parsing mail: %v", err)
 		return
 	}
-	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Headers, parsed.Body)
+	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, parsed.Body)
 }
