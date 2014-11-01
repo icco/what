@@ -100,5 +100,5 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Failed reading body: %v", err)
 		return
 	}
-	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, body)
+	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, string(body))
 }
