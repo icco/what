@@ -153,7 +153,7 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 
 func (m *Message) _datastoreSave(c appengine.Context) error {
 	n := Note{
-		Content: m.Data,
+		Content: string(m.Data),
 		Date:    time.Now(),
 	}
 
