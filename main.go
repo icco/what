@@ -152,6 +152,39 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 }
 
 func (m *Message) _datastoreSave(c appengine.Context) error {
+	mediaType, params, err := mime.ParseMediaType(m.ContentType)
+	if err != nil {
+		return nil, err
+	}
+
+	content = ""
+	if strings.HasPrefix(mediaType, "multipart/") {
+		messages := map[string]string{}
+		mr := multipart.NewReader(m.Data, params["boundary"])
+		for {
+			p, err := mr.NextPart()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				return nil, err
+			}
+
+			slurp, err := ioutil.ReadAll(p)
+			if err != nil {
+				return nil, err
+			}
+
+			messages[p.Header.Get("content-type")] = string(slurp)
+		}
+
+		if messages["text/html; charset=UTF-8"] != "" {
+			content = messages["text/html; charset=UTF-8"]
+		} else {
+			content = messages["text/plain; charset=UTF-8"]
+		}
+	} else {
+		content = string(m.Data)
+	}
 	n := Note{
 		Content: string(m.Data),
 		Date:    time.Now(),
