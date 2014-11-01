@@ -183,5 +183,30 @@ func (m *Message) _datastoreSave(c appengine.Context) error {
 }
 
 func (m *Message) _blobstoreSave(c appengine.Context) error {
-	return errors.New("Not implemented yet")
+	bucketName, err := file.DefaultBucketName(c)
+	if err != nil {
+		return errors.New(fmt.Sprintf("failed to get default GCS bucket name: %v", err))
+	}
+
+	config := google.NewAppEngineConfig(c, storage.ScopeFullControl)
+	ctx := cloud.NewContext(appengine.AppID(c), &http.Client{Transport: config.NewTransport()})
+	wc := storage.NewWriter(ctx, bucketName, m.ContentId, &storage.Object{
+		ContentType: m.ContentType,
+		Metadata:    map[string]string{},
+	})
+	if _, err := wc.Write(m.Data); err != nil {
+		c.Errorf("createFile: unable to write data to bucket %q, file %q: %v", bucketName, m.ContentId, err)
+		return err
+	}
+	if err := wc.Close(); err != nil {
+		c.Errorf("createFile: unable to close bucket %q, file %q: %v", bucketName, m.ContentId, err)
+		return err
+	}
+	// Wait for the file to be fully written.
+	if _, err := wc.Object(); err != nil {
+		c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, m.ContentId, err)
+		return err
+	}
+
+	return nil
 }
