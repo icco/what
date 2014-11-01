@@ -211,10 +211,10 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 	}
 
 	// Wait for the file to be fully written.
-	//if _, err := wc.Object(); err != nil {
-	//	c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
-	//	return err
-	//}
+	if _, err := wc.Object(); err != nil {
+		c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
+		return err
+	}
 
 	return nil
 }
