@@ -15,7 +15,12 @@ import (
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/file"
 	"appengine/user"
+
+	"github.com/golang/oauth2/google"
+	"google.golang.org/cloud"
+	"google.golang.org/cloud/storage"
 )
 
 type Note struct {
@@ -109,6 +114,10 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 	c.Infof("Parsed mail headers: %+v", parsed.Header)
 	for k, v := range body {
 		c.Infof("Parse mail body part %d: %+v", k, *v)
+		if err := v.Store(c); err != nil {
+			c.Errorf("Failed storing message: %v", err)
+			return
+		}
 	}
 }
 
@@ -124,6 +133,16 @@ type Message struct {
 	ContentDisposition      string
 }
 
+// Writes Message to appropriate storage place.
+func (m *Message) Store(c appengine.Context) error {
+	if strings.HasPrefix(m.ContentType, "text/") {
+		return m._datastoreSave(c)
+	} else {
+		return m._blobstoreSave(c)
+	}
+}
+
+// Takes an io.Reader and turns it into to a Message struct array.
 func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 	messages := make([]*Message, 0)
 	mediaType, params, err := mime.ParseMediaType(contentType)
@@ -157,4 +176,12 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 	} else {
 		return nil, errors.New(fmt.Sprintf("Unknown mediatype: %+v", mediaType))
 	}
+}
+
+func (m *Message) _datastoreSave(c appengine.Context) error {
+	return errors.New("Not implemented yet")
+}
+
+func (m *Message) _blobstoreSave(c appengine.Context) error {
+	return errors.New("Not implemented yet")
 }
