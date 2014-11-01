@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"html/template"
@@ -154,24 +155,24 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 func (m *Message) _datastoreSave(c appengine.Context) error {
 	mediaType, params, err := mime.ParseMediaType(m.ContentType)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	content = ""
+	content := ""
 	if strings.HasPrefix(mediaType, "multipart/") {
 		messages := map[string]string{}
-		mr := multipart.NewReader(m.Data, params["boundary"])
+		mr := multipart.NewReader(bytes.NewBuffer(m.Data), params["boundary"])
 		for {
 			p, err := mr.NextPart()
 			if err == io.EOF {
 				break
 			} else if err != nil {
-				return nil, err
+				return err
 			}
 
 			slurp, err := ioutil.ReadAll(p)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			messages[p.Header.Get("content-type")] = string(slurp)
@@ -186,7 +187,7 @@ func (m *Message) _datastoreSave(c appengine.Context) error {
 		content = string(m.Data)
 	}
 	n := Note{
-		Content: string(m.Data),
+		Content: content,
 		Date:    time.Now(),
 	}
 
@@ -200,7 +201,7 @@ func (m *Message) _datastoreSave(c appengine.Context) error {
 	// consistent. However, the write rate to a single entity group should be
 	// limited to ~1/second.
 	key := datastore.NewIncompleteKey(c, "Note", noteKey(c))
-	_, err := datastore.Put(c, key, &n)
+	_, err = datastore.Put(c, key, &n)
 	if err != nil {
 		return err
 	}
