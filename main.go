@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
@@ -233,11 +234,15 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 		return err
 	}
 
-	if i, err := wc.Write(m.Data); err != nil {
-		c.Errorf("Unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
-		return err
+	if data, err := base64.StdEncoding.DecodeString(string(m.Data)); err != nil {
+		c.Errorf("Unable to decode string: %v", err)
 	} else {
-		c.Infof("Wrote %d bytes to bucket '%+v' and file '%+v'", i, bucketName, filename)
+		if i, err := wc.Write(data); err != nil {
+			c.Errorf("Unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
+			return err
+		} else {
+			c.Infof("Wrote %d bytes to bucket '%+v' and file '%+v'", i, bucketName, filename)
+		}
 	}
 
 	if err := wc.Close(); err != nil {
