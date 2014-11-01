@@ -30,7 +30,7 @@ func noteKey(c appengine.Context) *datastore.Key {
 
 func root(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("Note").Ancestor(guestbookKey(c)).Order("-Date").Limit(10)
+	q := datastore.NewQuery("Note").Ancestor(noteKey(c)).Order("-Date").Limit(10)
 	notes := make([]Note, 0, 10)
 	if _, err := q.GetAll(c, &notes); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,7 +66,7 @@ var noteTemplate = template.Must(template.New("book").Parse(`
 
 func sign(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	g := Greeting{
+	g := Note{
 		Content: r.FormValue("content"),
 		Date:    time.Now(),
 	}
@@ -77,7 +77,7 @@ func sign(w http.ResponseWriter, r *http.Request) {
 	// is in the same entity group. Queries across the single entity group
 	// will be consistent. However, the write rate to a single entity group
 	// should be limited to ~1/second.
-	key := datastore.NewIncompleteKey(c, "Greeting", guestbookKey(c))
+	key := datastore.NewIncompleteKey(c, "Note", noteKey(c))
 	_, err := datastore.Put(c, key, &g)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,10 +89,10 @@ func sign(w http.ResponseWriter, r *http.Request) {
 func incomingMail(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	defer r.Body.Close()
-	var b bytes.Buffer
-	if _, err := b.ReadFrom(r.Body); err != nil {
-		c.Errorf("Error reading body: %v", err)
+	parsed, err := mail.ReadMessage(r.Body)
+	if err != nil {
+		c.Errorf("Error parsing mail: %v", err)
 		return
 	}
-	c.Infof("Received mail: %v", b)
+	c.Infof("Parsed mail: %v", parsed)
 }
