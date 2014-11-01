@@ -136,7 +136,7 @@ type Message struct {
 
 // Writes Message to appropriate storage place.
 func (m *Message) Store(c appengine.Context) error {
-	if strings.HasPrefix(m.ContentType, "text/") || m.ContentType == "multipart/alternative" {
+	if strings.HasPrefix(m.ContentType, "text/") || strings.HasPrefix(m.ContentType, "multipart/alternative") {
 		return m._datastoreSave(c)
 	} else {
 		c.Infof("Starting blobstore: {ID: %v, Encoding: %v, Type: %v, Disposition: %v}", m.ContentId, m.ContentTransferEncoding, m.ContentType, m.ContentDisposition)
