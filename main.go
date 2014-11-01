@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/mail"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/file"
+	"appengine/user"
 
 	"github.com/golang/oauth2/google"
 	"google.golang.org/cloud"
@@ -26,8 +28,8 @@ import (
 )
 
 type Note struct {
-	Author  string
-	Content string
+	Author  user.User
+	Content template.HTML
 	Date    time.Time
 }
 
@@ -187,8 +189,10 @@ func (m *Message) _datastoreSave(c appengine.Context) error {
 	} else {
 		content = string(m.Data)
 	}
+
+	content = replaceCidWithUrl(content)
 	n := Note{
-		Content: content,
+		Content: template.HTML(content),
 		Date:    time.Now(),
 	}
 
@@ -257,6 +261,11 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 	}
 
 	return nil
+}
+
+func replaceCidWithUrl(html string) string {
+	r := regexp.MustCompile("cid:")
+	return r.ReplaceAllString(html, "http://storage.googleapis.com/natwelch-what.appspot.com/cid.")
 }
 
 func contentIdString(cid string) string {
