@@ -165,7 +165,7 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 			messages = append(messages, &Message{
 				ContentType:             p.Header.Get("Content-Type"),
 				Data:                    slurp,
-				ContentId:               p.Header.Get("Content-ID"),
+				ContentId:               contentIdString(p.Header.Get("Content-ID")),
 				ContentTransferEncoding: p.Header.Get("Content-Transfer-Encoding"),
 				ContentDisposition:      p.Header.Get("Content-Disposition"),
 			})
@@ -196,25 +196,31 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 		ContentType: m.ContentType,
 		Metadata:    map[string]string{},
 	})
-	c.Infof("Writer Created: %+v", wc)
 
 	if i, err := wc.Write(m.Data); err != nil {
-		c.Errorf("createFile: unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
+		c.Errorf("Unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	} else {
 		c.Infof("Wrote %d bytes to bucket '%+v' and file '%+v'", i, bucketName, filename)
 	}
 
 	if err := wc.Close(); err != nil {
-		c.Errorf("createFile: unable to close bucket %q, file %q: %v", bucketName, filename, err)
+		c.Errorf("Unable to close bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	}
 
 	// Wait for the file to be fully written.
 	if _, err := wc.Object(); err != nil {
-		c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
+		c.Errorf("Unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	}
 
 	return nil
+}
+
+func contentIdString(cid string) string {
+	if cid != "" {
+		cid = fmt.Sprintf("cid.%s", strings.Trim(cid, "<> "))
+	}
+	return cid
 }
