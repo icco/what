@@ -9,6 +9,7 @@ run: css *.go
 	gcloud preview app run . --project=natwelch-what
 
 deploy:
+	git push
 	gcloud preview app deploy . --project=natwelch-what
 
 update:
