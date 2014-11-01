@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"net/mail"
 	"time"
@@ -94,5 +95,10 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Error parsing mail: %v", err)
 		return
 	}
-	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, parsed.Body)
+	body, err := ioutil.ReadAll(parsed.Body)
+	if err != nil {
+		c.Errorf("Failed reading body: %v", err)
+		return
+	}
+	c.Infof("Parsed mail: headers: %+v. body: %+v", parsed.Header, body)
 }
