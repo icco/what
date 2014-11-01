@@ -188,23 +188,28 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 		return errors.New(fmt.Sprintf("failed to get default GCS bucket name: %v", err))
 	}
 
+	filename = m.ContentId
+	if filename == "" {
+		filename = strconv.FormatInt(time.Now().Unix(), 10)
+	}
+
 	config := google.NewAppEngineConfig(c, storage.ScopeFullControl)
 	ctx := cloud.NewContext(appengine.AppID(c), &http.Client{Transport: config.NewTransport()})
-	wc := storage.NewWriter(ctx, bucketName, m.ContentId, &storage.Object{
+	wc := storage.NewWriter(ctx, bucketName, filename, &storage.Object{
 		ContentType: m.ContentType,
 		Metadata:    map[string]string{},
 	})
 	if _, err := wc.Write(m.Data); err != nil {
-		c.Errorf("createFile: unable to write data to bucket %q, file %q: %v", bucketName, m.ContentId, err)
+		c.Errorf("createFile: unable to write data to bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	}
 	if err := wc.Close(); err != nil {
-		c.Errorf("createFile: unable to close bucket %q, file %q: %v", bucketName, m.ContentId, err)
+		c.Errorf("createFile: unable to close bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	}
 	// Wait for the file to be fully written.
 	if _, err := wc.Object(); err != nil {
-		c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, m.ContentId, err)
+		c.Errorf("createFile: unable to finalize file from bucket %q, file %q: %v", bucketName, filename, err)
 		return err
 	}
 
