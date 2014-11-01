@@ -114,7 +114,7 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 	}
 	c.Infof("Parsed mail headers: %+v", parsed.Header)
 	for k, v := range body {
-		c.Infof("Parse mail body part %d: %+v", k, *v)
+		c.Infof("Parse mail body part %d (type: %v): %+v", k, v.ContentType, string(v.Data))
 		if err := v.Store(c); err != nil {
 			c.Errorf("Failed storing message: %v", err)
 			return
@@ -139,6 +139,7 @@ func (m *Message) Store(c appengine.Context) error {
 	if strings.HasPrefix(m.ContentType, "text/") || m.ContentType == "multipart/alternative" {
 		return m._datastoreSave(c)
 	} else {
+		c.Infof("Starting blobstore: {ID: %v, Encoding: %v, Type: %v, Disposition: %v}", m.ContentId, m.ContentTransferEncoding, m.ContentType, m.ContentDisposition)
 		return m._blobstoreSave(c)
 	}
 }
