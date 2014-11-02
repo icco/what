@@ -119,13 +119,13 @@ type RootTemplateData struct {
 var noteTemplate = template.Must(template.New("book").Parse(`
 <html>
   <head>
-    <title>Nat Notes</title>
+    <title>What?</title>
   </head>
   <body>
     <p>Your email target: {{.Hash}}@natwelch-what.appspotmail.com</p>
 
     {{range .Notes}}
-      {{with .Author}}
+      {{with .Date}}
         <p><b>{{.}}</b> wrote:</p>
       {{else}}
         <p>An anonymous person wrote:</p>
@@ -336,7 +336,7 @@ func (m *Message) _blobstoreSave(c appengine.Context) error {
 
 func replaceCidWithUrl(html string) string {
 	r := regexp.MustCompile("cid:")
-	return r.ReplaceAllString(html, "http://storage.googleapis.com/natwelch-what.appspot.com/cid.")
+	return r.ReplaceAllString(html, "https://storage.googleapis.com/natwelch-what.appspot.com/cid.")
 }
 
 func contentIdString(cid string) string {
