@@ -4,3 +4,7 @@ indexes:
   properties:
   - name: Date
     direction: desc
+  - name: Author.Email
+- kind: UserData
+  properties:
+  - name: Hash
