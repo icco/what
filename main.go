@@ -31,7 +31,7 @@ import (
 
 type Note struct {
 	Author  user.User
-	Content template.HTML
+	Content template.HTML `datastore:",noindex"`
 	Date    time.Time
 }
 
