@@ -50,6 +50,18 @@ func noteKey(c appengine.Context) *datastore.Key {
 	return datastore.NewKey(c, "Note", "notes", 0, nil)
 }
 
+func GetUserByHash(c appengine.Context, hash string) *user.User {
+	data := &UserData{}
+	q := datastore.NewQuery("UserData").Filter("Hash", hash).Limit(1)
+	_, err := q.Run(c).Next(data)
+	if err != nil {
+		c.Errorf("While getting UserHash: %+v", err)
+		return nil
+	}
+
+	return &data.User
+}
+
 func GetUserHash(c appengine.Context, u *user.User) string {
 	data := &UserData{}
 	k := datastore.NewKey(c, "UserData", u.String(), 0, nil)
@@ -132,6 +144,20 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Error parsing mail: %v", err)
 		return
 	}
+
+	// Make sure this is an address we know about
+	addrs, err := parsed.Header.AddressList("To")
+	if err != nil {
+		c.Errorf("Failed reading FROM: %v", err)
+		return
+	}
+	userHash := strings.SplitN(addrs[0].Address, "@", 1)[0]
+	user := GetUserByHash(c, userHash)
+	if user == nil {
+		c.Errorf("Not a valid hash: %s", userHash)
+		return
+	}
+
 	body, err := parseBody(parsed.Body, parsed.Header.Get("Content-Type"))
 	if err != nil {
 		c.Errorf("Failed reading body: %v", err)
@@ -140,7 +166,7 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 	c.Infof("Parsed mail headers: %+v", parsed.Header)
 	for k, v := range body {
 		c.Infof("Parse mail body part %d (type: %v): %+v", k, v.ContentType, string(v.Data))
-		if err := v.Store(c); err != nil {
+		if err := v.Store(c, user); err != nil {
 			c.Errorf("Failed storing message: %v", err)
 		}
 	}
@@ -159,9 +185,9 @@ type Message struct {
 }
 
 // Writes Message to appropriate storage place.
-func (m *Message) Store(c appengine.Context) error {
+func (m *Message) Store(c appengine.Context, user *user.User) error {
 	if strings.HasPrefix(m.ContentType, "text/") || strings.HasPrefix(m.ContentType, "multipart/alternative") {
-		return m._datastoreSave(c)
+		return m._datastoreSave(c, user)
 	} else {
 		c.Infof("Starting blobstore: {ID: %v, Encoding: %v, Type: %v, Disposition: %v}", m.ContentId, m.ContentTransferEncoding, m.ContentType, m.ContentDisposition)
 		return m._blobstoreSave(c)
@@ -204,7 +230,7 @@ func parseBody(body io.Reader, contentType string) ([]*Message, error) {
 	}
 }
 
-func (m *Message) _datastoreSave(c appengine.Context) error {
+func (m *Message) _datastoreSave(c appengine.Context, user *user.User) error {
 	mediaType, params, err := mime.ParseMediaType(m.ContentType)
 	if err != nil {
 		return err
@@ -243,12 +269,8 @@ func (m *Message) _datastoreSave(c appengine.Context) error {
 	n := Note{
 		Content: template.HTML(content),
 		Date:    time.Now(),
+		Author:  *user,
 	}
-
-	// TODO(icco): Get user from email headers
-	//if u := user.Current(c); u != nil {
-	//	g.Author = u.String()
-	//}
 
 	// We set the same parent key on every Note entity to ensure each Note is in
 	// the same entity group. Queries across the single entity group will be
