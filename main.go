@@ -52,7 +52,7 @@ func noteKey(c appengine.Context) *datastore.Key {
 
 func GetUserByHash(c appengine.Context, hash string) *user.User {
 	data := &UserData{}
-	q := datastore.NewQuery("UserData").Filter("Hash", hash).Limit(1)
+	q := datastore.NewQuery("UserData").Filter("Hash =", hash).Limit(1)
 	_, err := q.Run(c).Next(data)
 	if err != nil {
 		c.Errorf("While getting UserHash: %+v", err)
