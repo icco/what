@@ -151,7 +151,7 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Failed reading FROM: %v", err)
 		return
 	}
-	userHash := strings.SplitN(addrs[0].Address, "@", 1)[0]
+	userHash := strings.Split(addrs[0].Address, "@")[0]
 	user := GetUserByHash(c, userHash)
 	if user == nil {
 		c.Errorf("Not a valid hash: %s", userHash)
