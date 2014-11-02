@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
@@ -33,6 +35,11 @@ type Note struct {
 	Date    time.Time
 }
 
+type UserData struct {
+	Hash string
+	User user.User
+}
+
 func init() {
 	http.HandleFunc("/", root)
 	http.HandleFunc("/_ah/mail/", incomingMail)
@@ -43,17 +50,57 @@ func noteKey(c appengine.Context) *datastore.Key {
 	return datastore.NewKey(c, "Note", "notes", 0, nil)
 }
 
+func GetUserHash(c appengine.Context, u *user.User) string {
+	data := &UserData{}
+	k := datastore.NewKey(c, "UserData", u.String(), 0, nil)
+	err := datastore.Get(c, k, data)
+	if err != nil {
+		c.Errorf("While getting UserHash: %+v", err)
+	}
+
+	if data.Hash == "" {
+		data = &UserData{}
+		data.User = *u
+		b := make([]byte, 12)
+		_, err := rand.Read(b)
+		if err != nil {
+			c.Errorf("While generating bytes: %+v", err)
+			return ""
+		}
+		data.Hash = hex.EncodeToString(b)
+		_, err = datastore.Put(c, k, data)
+		if err != nil {
+			c.Warningf("Error writing UserData (%+v -> %+v): %+v", k, data, err)
+		}
+	}
+
+	return data.Hash
+}
+
 func root(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("Note").Ancestor(noteKey(c)).Order("-Date").Limit(10)
+	u := user.Current(c)
+	if u == nil {
+		url, _ := user.LoginURL(c, "/")
+		http.Redirect(w, r, url, http.StatusFound)
+		return
+	}
+
+	q := datastore.NewQuery("Note").Ancestor(noteKey(c)).Filter("Author.Email =", u.String()).Order("-Date").Limit(10)
 	notes := make([]Note, 0, 10)
 	if _, err := q.GetAll(c, &notes); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := noteTemplate.Execute(w, notes); err != nil {
+
+	if err := noteTemplate.Execute(w, &RootTemplateData{Notes: notes, Hash: GetUserHash(c, u)}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+type RootTemplateData struct {
+	Notes []Note
+	Hash  string
 }
 
 // TODO(icco): Move to seperate file.
@@ -63,7 +110,9 @@ var noteTemplate = template.Must(template.New("book").Parse(`
     <title>Nat Notes</title>
   </head>
   <body>
-    {{range .}}
+    <p>Your email target: {{.Hash}}@natwelch-what.appspotmail.com</p>
+
+    {{range .Notes}}
       {{with .Author}}
         <p><b>{{.}}</b> wrote:</p>
       {{else}}
